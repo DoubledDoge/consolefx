@@ -2,9 +2,16 @@ name: CodeQL for C# Project
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
+      - 'src/**'
+      - '**/*.csproj'
+      - '**/*.sln'
+      - '.github/workflows/codeql.yml'
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+      - 'src/**'
+      - '**/*.csproj'
+      - '**/*.sln'
   schedule:
     - cron: '40 4 * * 6'
 

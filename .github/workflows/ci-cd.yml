@@ -2,14 +2,14 @@ name: .NET CI-CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'src/**'
       - '**/*.csproj'
       - '**/*.sln'
       - '.github/workflows/ci-cd.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'src/**'
       - '**/*.csproj'
