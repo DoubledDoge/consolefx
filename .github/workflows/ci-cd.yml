@@ -1,0 +1,112 @@
+name: .NET CI-CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - '**/*.csproj'
+      - '**/*.sln'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - '**/*.csproj'
+      - '**/*.sln'
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build library
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" || true
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results
+          path: "**/test-results.trx"
+          reporter: dotnet-trx
+          fail-on-error: true
+
+  validate-package:
+    name: Validate Package Metadata
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build library
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Pack for validation
+        run: dotnet pack --configuration Release --no-build --output ./artifacts
+
+      - name: Validate README exists
+        run: |
+          if [ ! -f "README.md" ]; then
+            echo "❌ README.md is missing!"
+            exit 1
+          fi
+          echo "✅ README.md found"
+
+      - name: Validate LICENSE exists
+        run: |
+          if [ ! -f "LICENSE" ]; then
+            echo "❌ LICENSE file is missing!"
+            exit 1
+          fi
+          echo "✅ LICENSE found"
+
+      - name: Display package info
+        run: |
+          echo "📦 Package validation successful"
+          ls -lh ./artifacts/

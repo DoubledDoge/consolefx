@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <!-- General Settings -->
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- Package Metadata -->
+        <PackageId>ConsolePrism</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>DoubledDoge</Authors>
+        <Company>Personal</Company>
+        <Description>Another opinionated console UI framework for .NET applications.</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/DoubledDoge/consoleprism</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/DoubledDoge/consoleprism/</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>console;cli;terminal;ui;</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <RootNamespace>ConsolePrism</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+</Project>
