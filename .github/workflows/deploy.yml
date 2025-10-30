@@ -4,13 +4,13 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  
+
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to release'
         required: false
-        type: strings
+        type: string
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -23,24 +23,29 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.extract.outputs.version }}
-    
+
     steps:
-      - name: Extract version from tag
+      - name: Extract version from tag or input
         id: extract
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG#v}
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            VERSION=${VERSION#v}
+          else
+            TAG=${GITHUB_REF#refs/tags/}
+            VERSION=${TAG#v}
+          fi
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Release version: $VERSION"
-          
-          # Validate semver format
+
           if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid version format: $VERSION"
-            echo "Expected format: v0.1.0 (semver)"
+            echo "Expected format: v0.1.0 or 0.1.0 (semver)"
             exit 1
           fi
           echo "Valid semver format"
-
+          
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
