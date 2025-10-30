@@ -52,19 +52,37 @@ jobs:
 
       - name: Build library
         run: dotnet build --configuration Release --no-restore
+        
+      - name: Detect test projects
+        id: detect_tests
+        run: |
+          found=false
+          # Look for explicit IsTestProject flag
+          if grep -R --include="*.csproj" -l "<IsTestProject>true</IsTestProject>" . >/dev/null 2>&1; then
+            found=true
+          fi
+          # Also detect common test SDK package usage
+          if [ "$found" = "false" ] && grep -R --include="*.csproj" -l "Microsoft.NET.Test.Sdk" . >/dev/null 2>&1; then
+            found=true
+          fi
+          echo "found=$found" >> $GITHUB_OUTPUT
 
       - name: Run tests
-        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" || true
+        if: steps.detect_tests.outputs.found == 'true'
+        run: |
+          dotnet test --configuration Release --no-build --verbosity normal \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory ./test-results
 
       - name: Test Report
+        if: always() && steps.detect_tests.outputs.found == 'true'
         uses: dorny/test-reporter@v1
-        if: always()
         with:
           name: Test Results
-          path: "**/test-results.trx"
+          path: "test-results/*.trx"
           reporter: dotnet-trx
           fail-on-error: true
-
+        
   validate-package:
     name: Validate Package Metadata
     runs-on: ubuntu-latest
