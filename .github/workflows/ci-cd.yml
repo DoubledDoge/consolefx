@@ -7,7 +7,7 @@ on:
       - 'src/**'
       - '**/*.csproj'
       - '**/*.sln'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/ci-cd.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
